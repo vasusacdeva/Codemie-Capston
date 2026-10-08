@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Management System</title>
+<style>
+  :root {
+    --primary: #4f46e5;
+    --primary-dark: #4338ca;
+    --danger: #dc2626;
+    --danger-dark: #b91c1c;
+    --bg: #f3f4f6;
+    --card-bg: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    background: linear-gradient(135deg, var(--primary), #7c3aed);
+    color: white;
+    padding: 24px 32px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  header h1 { margin: 0; font-size: 1.6rem; }
+  header p { margin: 4px 0 0; opacity: 0.9; font-size: 0.9rem; }
+
+  .container {
+    max-width: 1100px;
+    margin: 24px auto;
+    padding: 0 20px;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1px solid var(--border);
+  }
+  .stat-card .value { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
+  .stat-card .label { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 20px 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .card h2 {
+    margin-top: 0;
+    font-size: 1.15rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+  }
+
+  form.student-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+  }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+  input, select {
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background: #fff;
+    color: var(--text);
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+  }
+
+  .form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 18px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: background 0.15s ease;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-secondary { background: #e5e7eb; color: var(--text); }
+  .btn-secondary:hover { background: #d1d5db; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { background: var(--danger-dark); }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    align-items: center;
+  }
+  .toolbar input[type="text"] { flex: 1; min-width: 200px; }
+  .toolbar select { min-width: 160px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  thead th {
+    text-align: left;
+    padding: 10px 12px;
+    background: #f9fafb;
+    border-bottom: 2px solid var(--border);
+    color: var(--muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr:hover { background: #f9fafb; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge.active { background: #dcfce7; color: #166534; }
+  .badge.inactive { background: #fee2e2; color: #991b1b; }
+
+  .row-actions { display: flex; gap: 8px; }
+  .row-actions button { padding: 6px 12px; font-size: 0.8rem; }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+  }
+
+  .hidden { display: none !important; }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+    padding: 20px;
+  }
+
+  @media (max-width: 600px) {
+    table, thead, tbody, th, td, tr { display: block; }
+    thead { display: none; }
+    tbody tr {
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+    }
+    tbody td {
+      border: none;
+      padding: 6px 8px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    tbody td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      color: var(--muted);
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎓 Student Management System</h1>
+  <p>Manage student records, enrollment and status — all in one page</p>
+</header>
+
+<div class="container">
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="value" id="statTotal">0</div>
+      <div class="label">Total Students</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" id="statActive">0</div>
+      <div class="label">Active Students</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" id="statCourses">0</div>
+      <div class="label">Courses</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" id="statAvgGrade">0</div>
+      <div class="label">Average Grade</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 id="formTitle">Add New Student</h2>
+    <form class="student-form" id="studentForm">
+      <input type="hidden" id="studentId">
+      <div class="field">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" placeholder="e.g. Jane Doe" required>
+      </div>
+      <div class="field">
+        <label for="rollNo">Roll Number</label>
+        <input type="text" id="rollNo" placeholder="e.g. S-1001" required>
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="e.g. jane@example.com" required>
+      </div>
+      <div class="field">
+        <label for="course">Course</label>
+        <input type="text" id="course" placeholder="e.g. Computer Science" required>
+      </div>
+      <div class="field">
+        <label for="grade">Grade (%)</label>
+        <input type="number" id="grade" min="0" max="100" step="0.1" placeholder="e.g. 85">
+      </div>
+      <div class="field">
+        <label for="status">Status</label>
+        <select id="status">
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" id="submitBtn">Add Student</button>
+        <button type="button" class="btn-secondary hidden" id="cancelEditBtn">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Student Records</h2>
+    <div class="toolbar">
+      <input type="text" id="searchInput" placeholder="🔍 Search by name, roll no, email or course...">
+      <select id="statusFilter">
+        <option value="">All Statuses</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+      <button type="button" class="btn-secondary" id="exportBtn">Export CSV</button>
+    </div>
+    <div id="tableWrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Roll No</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Course</th>
+            <th>Grade</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="studentTableBody"></tbody>
+      </table>
+      <div class="empty-state hidden" id="emptyState">No students found. Add one above to get started.</div>
+    </div>
+  </div>
+
+</div>
+
+<footer>Data is saved locally in your browser (localStorage). No server required.</footer>
+
+<script>
+(function () {
+  const STORAGE_KEY = 'sms_students_v1';
+
+  /** @type {Array<{id:string,name:string,rollNo:string,email:string,course:string,grade:number|null,status:string}>} */
+  let students = [];
+  let editingId = null;
+
+  const form = document.getElementById('studentForm');
+  const formTitle = document.getElementById('formTitle');
+  const submitBtn = document.getElementById('submitBtn');
+  const cancelEditBtn = document.getElementById('cancelEditBtn');
+  const tableBody = document.getElementById('studentTableBody');
+  const emptyState = document.getElementById('emptyState');
+  const searchInput = document.getElementById('searchInput');
+  const statusFilter = document.getElementById('statusFilter');
+  const exportBtn = document.getElementById('exportBtn');
+
+  function loadStudents() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      students = raw ? JSON.parse(raw) : seedData();
+    } catch (e) {
+      students = seedData();
+    }
+  }
+
+  function saveStudents() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+  }
+
+  function seedData() {
+    return [
+      { id: crypto.randomUUID(), name: 'Alice Johnson', rollNo: 'S-1001', email: 'alice@example.com', course: 'Computer Science', grade: 92, status: 'active' },
+      { id: crypto.randomUUID(), name: 'Bob Smith', rollNo: 'S-1002', email: 'bob@example.com', course: 'Mathematics', grade: 78, status: 'active' },
+      { id: crypto.randomUUID(), name: 'Carol White', rollNo: 'S-1003', email: 'carol@example.com', course: 'Physics', grade: 65, status: 'inactive' }
+    ];
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+  }
+
+  function getFiltered() {
+    const q = searchInput.value.trim().toLowerCase();
+    const st = statusFilter.value;
+    return students.filter(s => {
+      const matchesQuery = !q || [s.name, s.rollNo, s.email, s.course].some(v => (v || '').toLowerCase().includes(q));
+      const matchesStatus = !st || s.status === st;
+      return matchesQuery && matchesStatus;
+    });
+  }
+
+  function render() {
+    const filtered = getFiltered();
+    tableBody.innerHTML = '';
+
+    if (filtered.length === 0) {
+      emptyState.classList.remove('hidden');
+    } else {
+      emptyState.classList.add('hidden');
+      filtered.forEach(s => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td data-label="Roll No">${escapeHtml(s.rollNo)}</td>
+          <td data-label="Name">${escapeHtml(s.name)}</td>
+          <td data-label="Email">${escapeHtml(s.email)}</td>
+          <td data-label="Course">${escapeHtml(s.course)}</td>
+          <td data-label="Grade">${s.grade !== null && s.grade !== undefined && s.grade !== '' ? s.grade + '%' : '—'}</td>
+          <td data-label="Status"><span class="badge ${s.status}">${s.status === 'active' ? 'Active' : 'Inactive'}</span></td>
+          <td data-label="Actions">
+            <div class="row-actions">
+              <button type="button" class="btn-secondary" data-action="edit" data-id="${s.id}">Edit</button>
+              <button type="button" class="btn-danger" data-action="delete" data-id="${s.id}">Delete</button>
+            </div>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    updateStats();
+  }
+
+  function updateStats() {
+    const total = students.length;
+    const active = students.filter(s => s.status === 'active').length;
+    const courses = new Set(students.map(s => s.course).filter(Boolean)).size;
+    const grades = students.map(s => parseFloat(s.grade)).filter(g => !isNaN(g));
+    const avg = grades.length ? (grades.reduce((a, b) => a + b, 0) / grades.length).toFixed(1) : '0';
+
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statActive').textContent = active;
+    document.getElementById('statCourses').textContent = courses;
+    document.getElementById('statAvgGrade').textContent = avg + '%';
+  }
+
+  function resetForm() {
+    form.reset();
+    document.getElementById('studentId').value = '';
+    editingId = null;
+    formTitle.textContent = 'Add New Student';
+    submitBtn.textContent = 'Add Student';
+    cancelEditBtn.classList.add('hidden');
+  }
+
+  function startEdit(id) {
+    const s = students.find(x => x.id === id);
+    if (!s) return;
+    editingId = id;
+    document.getElementById('studentId').value = s.id;
+    document.getElementById('name').value = s.name;
+    document.getElementById('rollNo').value = s.rollNo;
+    document.getElementById('email').value = s.email;
+    document.getElementById('course').value = s.course;
+    document.getElementById('grade').value = s.grade ?? '';
+    document.getElementById('status').value = s.status;
+
+    formTitle.textContent = 'Edit Student';
+    submitBtn.textContent = 'Save Changes';
+    cancelEditBtn.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function deleteStudent(id) {
+    const s = students.find(x => x.id === id);
+    if (!s) return;
+    if (!confirm(`Delete student "${s.name}" (${s.rollNo})? This cannot be undone.`)) return;
+    students = students.filter(x => x.id !== id);
+    saveStudents();
+    render();
+    if (editingId === id) resetForm();
+  }
+
+  function isDuplicateRollNo(rollNo, ignoreId) {
+    return students.some(s => s.rollNo.toLowerCase() === rollNo.toLowerCase() && s.id !== ignoreId);
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const name = document.getElementById('name').value.trim();
+    const rollNo = document.getElementById('rollNo').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const course = document.getElementById('course').value.trim();
+    const gradeRaw = document.getElementById('grade').value;
+    const grade = gradeRaw === '' ? null : Math.min(100, Math.max(0, parseFloat(gradeRaw)));
+    const status = document.getElementById('status').value;
+
+    if (!name || !rollNo || !email || !course) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+
+    if (isDuplicateRollNo(rollNo, editingId)) {
+      alert('A student with this Roll Number already exists.');
+      return;
+    }
+
+    if (editingId) {
+      const s = students.find(x => x.id === editingId);
+      Object.assign(s, { name, rollNo, email, course, grade, status });
+    } else {
+      students.push({ id: crypto.randomUUID(), name, rollNo, email, course, grade, status });
+    }
+
+    saveStudents();
+    render();
+    resetForm();
+  });
+
+  cancelEditBtn.addEventListener('click', resetForm);
+
+  tableBody.addEventListener('click', function (e) {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    if (btn.dataset.action === 'edit') startEdit(id);
+    if (btn.dataset.action === 'delete') deleteStudent(id);
+  });
+
+  searchInput.addEventListener('input', render);
+  statusFilter.addEventListener('change', render);
+
+  exportBtn.addEventListener('click', function () {
+    const rows = getFiltered();
+    if (rows.length === 0) {
+      alert('No students to export.');
+      return;
+    }
+    const header = ['Roll No', 'Name', 'Email', 'Course', 'Grade', 'Status'];
+    const csvRows = [header.join(',')];
+    rows.forEach(s => {
+      const line = [s.rollNo, s.name, s.email, s.course, s.grade ?? '', s.status]
+        .map(v => `"${String(v).replace(/"/g, '""')}"`)
+        .join(',');
+      csvRows.push(line);
+    });
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'students.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  loadStudents();
+  saveStudents();
+  render();
+})();
+</script>
+
+</body>
+</html>
