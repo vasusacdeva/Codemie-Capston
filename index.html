@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Student Management System</title>
+<script>
+  // Apply saved theme before first paint to avoid a flash; Light is the default.
+  (function () {
+    var t = 'light';
+    try { if (localStorage.getItem('sms_theme') === 'dark') t = 'dark'; } catch (e) {}
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
 <style>
   :root {
     --primary: #4f46e5;
@@ -554,7 +562,7 @@
     const th = header.map(h => `<th>${escapeHtml(h)}</th>`).join('');
     const body = rows.map(s => {
       const cells = [s.rollNo, s.name, s.email, s.course, s.grade ?? '', s.status === 'active' ? 'Active' : 'Inactive'];
-      return '<tr>' + cells.map(v => `<td>${escapeHtml(String(v))}</td>`).join('') + '</tr>';
+      return '<tr>' + cells.map(v => `<td style="mso-number-format:'\\@'">${escapeHtml(String(v))}</td>`).join('') + '</tr>';
     }).join('');
     const html = '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body>'
       + `<table border="1"><thead><tr>${th}</tr></thead><tbody>${body}</tbody></table></body></html>`;
