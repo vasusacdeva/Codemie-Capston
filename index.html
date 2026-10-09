@@ -15,6 +15,33 @@
     --text: #1f2937;
     --muted: #6b7280;
     --border: #e5e7eb;
+    --input-bg: #ffffff;
+    --surface-alt: #f9fafb;
+    --btn-secondary-bg: #e5e7eb;
+    --btn-secondary-hover: #d1d5db;
+    --badge-active-bg: #dcfce7;
+    --badge-active-text: #166534;
+    --badge-inactive-bg: #fee2e2;
+    --badge-inactive-text: #991b1b;
+    color-scheme: light;
+  }
+  [data-theme="dark"] {
+    --primary: #818cf8;
+    --primary-dark: #6366f1;
+    --bg: #111827;
+    --card-bg: #1f2937;
+    --text: #f3f4f6;
+    --muted: #9ca3af;
+    --border: #374151;
+    --input-bg: #111827;
+    --surface-alt: #273244;
+    --btn-secondary-bg: #374151;
+    --btn-secondary-hover: #4b5563;
+    --badge-active-bg: #14532d;
+    --badge-active-text: #bbf7d0;
+    --badge-inactive-bg: #7f1d1d;
+    --badge-inactive-text: #fecaca;
+    color-scheme: dark;
   }
   * { box-sizing: border-box; }
   body {
@@ -29,6 +56,9 @@
     padding: 24px 32px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   }
+  header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .theme-toggle { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.5); }
+  .theme-toggle:hover { background: rgba(255,255,255,0.35); }
   header h1 { margin: 0; font-size: 1.6rem; }
   header p { margin: 4px 0 0; opacity: 0.9; font-size: 0.9rem; }
 
@@ -81,7 +111,7 @@
     border: 1px solid var(--border);
     border-radius: 6px;
     font-size: 0.9rem;
-    background: #fff;
+    background: var(--input-bg);
     color: var(--text);
   }
   input:focus, select:focus {
@@ -108,8 +138,10 @@
   }
   .btn-primary { background: var(--primary); color: #fff; }
   .btn-primary:hover { background: var(--primary-dark); }
-  .btn-secondary { background: #e5e7eb; color: var(--text); }
-  .btn-secondary:hover { background: #d1d5db; }
+  .btn-secondary { background: var(--btn-secondary-bg); color: var(--text); }
+  .btn-secondary:hover { background: var(--btn-secondary-hover); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
   .btn-danger { background: var(--danger); color: #fff; }
   .btn-danger:hover { background: var(--danger-dark); }
 
@@ -131,7 +163,7 @@
   thead th {
     text-align: left;
     padding: 10px 12px;
-    background: #f9fafb;
+    background: var(--surface-alt);
     border-bottom: 2px solid var(--border);
     color: var(--muted);
     font-size: 0.8rem;
@@ -142,7 +174,7 @@
     padding: 10px 12px;
     border-bottom: 1px solid var(--border);
   }
-  tbody tr:hover { background: #f9fafb; }
+  tbody tr:hover { background: var(--surface-alt); }
 
   .badge {
     display: inline-block;
@@ -151,8 +183,8 @@
     font-size: 0.75rem;
     font-weight: 600;
   }
-  .badge.active { background: #dcfce7; color: #166534; }
-  .badge.inactive { background: #fee2e2; color: #991b1b; }
+  .badge.active { background: var(--badge-active-bg); color: var(--badge-active-text); }
+  .badge.inactive { background: var(--badge-inactive-bg); color: var(--badge-inactive-text); }
 
   .row-actions { display: flex; gap: 8px; }
   .row-actions button { padding: 6px 12px; font-size: 0.8rem; }
@@ -199,8 +231,11 @@
 <body>
 
 <header>
-  <h1>🎓 Student Management System</h1>
-  <p>Manage student records, enrollment and status — all in one page</p>
+  <div>
+    <h1>🎓 Student Management System</h1>
+    <p>Manage student records, enrollment and status — all in one page</p>
+  </div>
+  <button type="button" class="theme-toggle" id="themeToggleBtn" aria-pressed="false">🌙 Dark mode</button>
 </header>
 
 <div class="container">
@@ -272,6 +307,7 @@
         <option value="inactive">Inactive</option>
       </select>
       <button type="button" class="btn-secondary" id="exportBtn">Export CSV</button>
+      <button type="button" class="btn-secondary" id="exportXlsBtn">Export XLS</button>
     </div>
     <div id="tableWrapper">
       <table>
@@ -313,6 +349,9 @@
   const searchInput = document.getElementById('searchInput');
   const statusFilter = document.getElementById('statusFilter');
   const exportBtn = document.getElementById('exportBtn');
+  const exportXlsBtn = document.getElementById('exportXlsBtn');
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+  const THEME_KEY = 'sms_theme';
 
   function loadStudents() {
     try {
@@ -379,6 +418,7 @@
       });
     }
 
+    exportXlsBtn.disabled = filtered.length === 0;
     updateStats();
   }
 
@@ -505,6 +545,50 @@
     URL.revokeObjectURL(url);
   });
 
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  exportXlsBtn.addEventListener('click', function () {
+    const rows = getFiltered();
+    if (rows.length === 0) return;
+    const header = ['Roll No', 'Name', 'Email', 'Course', 'Grade (%)', 'Status'];
+    const th = header.map(h => `<th>${escapeHtml(h)}</th>`).join('');
+    const body = rows.map(s => {
+      const cells = [s.rollNo, s.name, s.email, s.course, s.grade ?? '', s.status === 'active' ? 'Active' : 'Inactive'];
+      return '<tr>' + cells.map(v => `<td>${escapeHtml(String(v))}</td>`).join('') + '</tr>';
+    }).join('');
+    const html = '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body>'
+      + `<table border="1"><thead><tr>${th}</tr></thead><tbody>${body}</tbody></table></body></html>`;
+    const d = new Date();
+    const stamp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}`;
+    const blob = new Blob(['﻿' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `students_${stamp}.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  function applyTheme(theme) {
+    const dark = theme === 'dark';
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    themeToggleBtn.textContent = dark ? '☀️ Light mode' : '🌙 Dark mode';
+    themeToggleBtn.setAttribute('aria-pressed', String(dark));
+  }
+
+  function initTheme() {
+    let saved = null;
+    try { saved = localStorage.getItem(THEME_KEY); } catch (e) {}
+    applyTheme(saved === 'dark' ? 'dark' : 'light');
+  }
+
+  themeToggleBtn.addEventListener('click', function () {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+  });
+
+  initTheme();
   loadStudents();
   saveStudents();
   render();
