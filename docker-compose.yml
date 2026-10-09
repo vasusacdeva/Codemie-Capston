@@ -1,0 +1,5 @@
+services:
+  student-app:
+    build: .
+    ports:
+      - "8080:80"
