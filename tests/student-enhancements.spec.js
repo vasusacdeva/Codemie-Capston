@@ -35,8 +35,9 @@ test('empty export shows message and no download', async ({ page }) => {
   await page.fill('#searchInput', 'zzzz-no-match');
   let downloaded = false;
   page.on('download', () => (downloaded = true));
-  const dialog = page.waitForEvent('dialog');
+  let message = null;
+  page.once('dialog', d => { message = d.message(); d.accept(); });
   await page.click('#exportXlsBtn');
-  expect((await dialog).message()).toBe('No data to export.');
+  expect(message).toBe('No data to export.');
   expect(downloaded).toBe(false);
 });
