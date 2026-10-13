@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Student Management System</title>
+<script>
+  // Apply saved theme before first paint to avoid flicker
+  (function () {
+    var t = 'light';
+    try { t = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'; } catch (e) {}
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   :root {
     --primary: #4f46e5;
@@ -15,6 +24,31 @@
     --text: #1f2937;
     --muted: #6b7280;
     --border: #e5e7eb;
+    --input-bg: #ffffff;
+    --surface-alt: #f9fafb;
+    --btn-secondary-bg: #e5e7eb;
+    --btn-secondary-hover: #d1d5db;
+    --badge-active-bg: #dcfce7;
+    --badge-active-text: #166534;
+    --badge-inactive-bg: #fee2e2;
+    --badge-inactive-text: #991b1b;
+  }
+  :root[data-theme="dark"] {
+    --primary: #818cf8;
+    --primary-dark: #6366f1;
+    --bg: #111827;
+    --card-bg: #1f2937;
+    --text: #f3f4f6;
+    --muted: #9ca3af;
+    --border: #374151;
+    --input-bg: #111827;
+    --surface-alt: #273244;
+    --btn-secondary-bg: #374151;
+    --btn-secondary-hover: #4b5563;
+    --badge-active-bg: #14532d;
+    --badge-active-text: #bbf7d0;
+    --badge-inactive-bg: #7f1d1d;
+    --badge-inactive-text: #fecaca;
   }
   * { box-sizing: border-box; }
   body {
@@ -81,7 +115,7 @@
     border: 1px solid var(--border);
     border-radius: 6px;
     font-size: 0.9rem;
-    background: #fff;
+    background: var(--input-bg);
     color: var(--text);
   }
   input:focus, select:focus {
@@ -108,8 +142,8 @@
   }
   .btn-primary { background: var(--primary); color: #fff; }
   .btn-primary:hover { background: var(--primary-dark); }
-  .btn-secondary { background: #e5e7eb; color: var(--text); }
-  .btn-secondary:hover { background: #d1d5db; }
+  .btn-secondary { background: var(--btn-secondary-bg); color: var(--text); }
+  .btn-secondary:hover { background: var(--btn-secondary-hover); }
   .btn-danger { background: var(--danger); color: #fff; }
   .btn-danger:hover { background: var(--danger-dark); }
 
@@ -131,7 +165,7 @@
   thead th {
     text-align: left;
     padding: 10px 12px;
-    background: #f9fafb;
+    background: var(--surface-alt);
     border-bottom: 2px solid var(--border);
     color: var(--muted);
     font-size: 0.8rem;
@@ -142,7 +176,7 @@
     padding: 10px 12px;
     border-bottom: 1px solid var(--border);
   }
-  tbody tr:hover { background: #f9fafb; }
+  tbody tr:hover { background: var(--surface-alt); }
 
   .badge {
     display: inline-block;
@@ -151,8 +185,8 @@
     font-size: 0.75rem;
     font-weight: 600;
   }
-  .badge.active { background: #dcfce7; color: #166534; }
-  .badge.inactive { background: #fee2e2; color: #991b1b; }
+  .badge.active { background: var(--badge-active-bg); color: var(--badge-active-text); }
+  .badge.inactive { background: var(--badge-inactive-bg); color: var(--badge-inactive-text); }
 
   .row-actions { display: flex; gap: 8px; }
   .row-actions button { padding: 6px 12px; font-size: 0.8rem; }
@@ -164,6 +198,36 @@
   }
 
   .hidden { display: none !important; }
+
+  .header-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .theme-toggle {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.5);
+  }
+  .theme-toggle:hover { background: rgba(255,255,255,0.3); }
+  button:focus-visible, select:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+  .theme-toggle:focus-visible { outline-color: #fff; }
+
+  #message {
+    display: none;
+    margin-bottom: 12px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+  #message.visible { display: block; }
 
   footer {
     text-align: center;
@@ -199,8 +263,13 @@
 <body>
 
 <header>
-  <h1>🎓 Student Management System</h1>
-  <p>Manage student records, enrollment and status — all in one page</p>
+  <div class="header-inner">
+    <div>
+      <h1>🎓 Student Management System</h1>
+      <p>Manage student records, enrollment and status — all in one page</p>
+    </div>
+    <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false">Light</button>
+  </div>
 </header>
 
 <div class="container">
@@ -271,8 +340,13 @@
         <option value="active">Active</option>
         <option value="inactive">Inactive</option>
       </select>
-      <button type="button" class="btn-secondary" id="exportBtn">Export CSV</button>
+      <select id="exportSelect" aria-label="Export visible records">
+        <option value="">Export…</option>
+        <option value="csv">Export CSV</option>
+        <option value="xlsx">Export XLSX</option>
+      </select>
     </div>
+    <div id="message" role="status" aria-live="polite"></div>
     <div id="tableWrapper">
       <table>
         <thead>
@@ -312,7 +386,54 @@
   const emptyState = document.getElementById('emptyState');
   const searchInput = document.getElementById('searchInput');
   const statusFilter = document.getElementById('statusFilter');
-  const exportBtn = document.getElementById('exportBtn');
+  const exportSelect = document.getElementById('exportSelect');
+  const themeToggle = document.getElementById('themeToggle');
+  const THEME_KEY = 'theme';
+  const DEFAULT_THEME = 'light';
+
+  const EXPORT_COLUMNS = [
+    { header: 'Roll No', key: 'rollNo' },
+    { header: 'Name',    key: 'name' },
+    { header: 'Email',   key: 'email' },
+    { header: 'Course',  key: 'course' },
+    { header: 'Grade',   key: 'grade', type: 'number' },
+    { header: 'Status',  key: 'status' }
+  ];
+
+  let messageTimer = null;
+  function showMessage(text) {
+    const el = document.getElementById('message');
+    if (!el) { alert(text); return; }
+    el.textContent = text;
+    el.classList.add('visible');
+    clearTimeout(messageTimer);
+    messageTimer = setTimeout(() => el.classList.remove('visible'), 3000);
+  }
+
+  function loadThemePreference() {
+    try {
+      return localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : DEFAULT_THEME;
+    } catch (e) {
+      return DEFAULT_THEME;
+    }
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+    themeToggle.textContent = theme === 'dark' ? 'Dark' : 'Light';
+    themeToggle.setAttribute('aria-label', `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`);
+  }
+
+  function persistTheme(theme) {
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* storage unavailable */ }
+  }
+
+  function toggleTheme() {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    persistTheme(next);
+  }
 
   function loadStudents() {
     try {
@@ -482,16 +603,37 @@
   searchInput.addEventListener('input', render);
   statusFilter.addEventListener('change', render);
 
-  exportBtn.addEventListener('click', function () {
+  function buildExportFilename(ext) {
+    const d = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `student-records-${d.getFullYear()}-${mm}-${dd}.${ext}`;
+  }
+
+  function toExportRows(rows) {
+    return rows.map(s => {
+      const row = {};
+      EXPORT_COLUMNS.forEach(c => {
+        let v = s[c.key];
+        if (c.type === 'number') {
+          const n = v === '' || v == null ? NaN : Number(v);
+          v = isNaN(n) ? '' : n;
+        }
+        row[c.header] = v ?? '';
+      });
+      return row;
+    });
+  }
+
+  function exportToCsv() {
     const rows = getFiltered();
     if (rows.length === 0) {
-      alert('No students to export.');
+      showMessage('No data to export.');
       return;
     }
-    const header = ['Roll No', 'Name', 'Email', 'Course', 'Grade', 'Status'];
-    const csvRows = [header.join(',')];
+    const csvRows = [EXPORT_COLUMNS.map(c => c.header).join(',')];
     rows.forEach(s => {
-      const line = [s.rollNo, s.name, s.email, s.course, s.grade ?? '', s.status]
+      const line = EXPORT_COLUMNS.map(c => s[c.key] ?? '')
         .map(v => `"${String(v).replace(/"/g, '""')}"`)
         .join(',');
       csvRows.push(line);
@@ -503,8 +645,41 @@
     a.download = 'students.csv';
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function exportToXlsx() {
+    if (!window.XLSX) {
+      console.error('SheetJS (XLSX) is not loaded.');
+      showMessage('XLSX export is unavailable (library not loaded).');
+      return;
+    }
+    const rows = getFiltered();
+    if (rows.length === 0) {
+      showMessage('No data to export.');
+      return;
+    }
+    try {
+      const ws = XLSX.utils.json_to_sheet(toExportRows(rows), { header: EXPORT_COLUMNS.map(c => c.header) });
+      ws['!cols'] = [{ wch: 10 }, { wch: 20 }, { wch: 28 }, { wch: 18 }, { wch: 8 }, { wch: 10 }];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Student Records');
+      XLSX.writeFile(wb, buildExportFilename('xlsx'));
+    } catch (e) {
+      console.error('XLSX export failed', e);
+      showMessage('XLSX export failed.');
+    }
+  }
+
+  exportSelect.addEventListener('change', function (e) {
+    const val = e.target.value;
+    if (val === 'csv') exportToCsv();
+    if (val === 'xlsx') exportToXlsx();
+    e.target.value = '';
   });
 
+  themeToggle.addEventListener('click', toggleTheme);
+
+  applyTheme(loadThemePreference());
   loadStudents();
   saveStudents();
   render();
