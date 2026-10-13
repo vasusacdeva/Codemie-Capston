@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Student Management System</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw" crossorigin="anonymous"></script>
+<script>(function(){try{var t=localStorage.getItem('app:theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
 <style>
   /* ===== Theme Variables ===== */
   :root {
@@ -318,6 +319,7 @@
     var icon  = document.getElementById('themeIcon');
     var label = document.getElementById('themeLabel');
     if (btn)   btn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+    if (btn)   btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
     if (icon)  icon.innerHTML  = theme === 'dark' ? '&#9728;' : '&#127769;';
     if (label) label.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
   }
@@ -359,7 +361,31 @@
     return yyyy + '-' + mm + '-' + dd;
   }
 
+  function exportStudentsToCsv(rows) {
+    if (!Array.isArray(rows) || rows.length === 0) return;
+    var header = EXPORT_COLUMNS.map(function (c) { return c.header; });
+    var lines  = [header].concat(rows.map(function (s) {
+      return EXPORT_COLUMNS.map(function (c) {
+        var raw   = s[c.key];
+        var value = c.map ? c.map(raw, s) : raw;
+        value = (value !== null && value !== undefined) ? String(value) : '';
+        return '"' + value.replace(/"/g, '""') + '"';
+      });
+    }));
+    var csv  = lines.map(function (r) { return r.join(','); }).join('\r\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'students_' + formatDateYYYYMMDD(new Date()) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   function exportStudentsToXlsx(rows) {
+    if (typeof XLSX === 'undefined') { alert('Excel library failed to load. Please check your internet connection and try again.'); return; }
     if (!Array.isArray(rows) || rows.length === 0) return;
     var header = EXPORT_COLUMNS.map(function (c) { return c.header; });
     var data   = rows.map(function (s) {
@@ -402,7 +428,7 @@
     } catch (e) { students = seedData(); }
   }
 
-  function saveStudents() { localStorage.setItem(STORAGE_KEY, JSON.stringify(students)); }
+  function saveStudents() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(students)); } catch (e) {} }
 
   function seedData() {
     return [
@@ -446,17 +472,17 @@
           '<td data-label="Email">'   + escapeHtml(s.email)  + '</td>' +
           '<td data-label="Course">'  + escapeHtml(s.course) + '</td>' +
           '<td data-label="Grade">'   + grade_display + '</td>' +
-          '<td data-label="Status"><span class="badge ' + s.status + '">' + (s.status === 'active' ? 'Active' : 'Inactive') + '</span></td>' +
+          '<td data-label="Status"><span class="badge ' + (s.status === 'active' ? 'active' : 'inactive') + '">' + (s.status === 'active' ? 'Active' : 'Inactive') + '</span></td>' +
           '<td data-label="Actions"><div class="row-actions">' +
-            '<button type="button" class="btn-secondary" data-action="edit"   data-id="' + s.id + '">Edit</button>' +
-            '<button type="button" class="btn-danger"    data-action="delete" data-id="' + s.id + '">Delete</button>' +
+            '<button type="button" class="btn-secondary" data-action="edit"   data-id="' + escapeHtml(s.id) + '">Edit</button>' +
+            '<button type="button" class="btn-danger"    data-action="delete" data-id="' + escapeHtml(s.id) + '">Delete</button>' +
           '</div></td>';
         tableBody.appendChild(tr);
       });
     }
     updateStats();
-    exportCsvBtn.disabled  = students.length === 0;
-    exportXlsxBtn.disabled = students.length === 0;
+    exportCsvBtn.disabled  = filtered.length === 0;
+    exportXlsxBtn.disabled = filtered.length === 0;
   }
 
   function updateStats() {
@@ -547,29 +573,6 @@
 
   searchInput.addEventListener('input', render);
   statusFilter.addEventListener('change', render);
-
-  function exportStudentsToCsv(rows) {
-    if (!Array.isArray(rows) || rows.length === 0) return;
-    var header = EXPORT_COLUMNS.map(function (c) { return c.header; });
-    var lines  = [header].concat(rows.map(function (s) {
-      return EXPORT_COLUMNS.map(function (c) {
-        var raw   = s[c.key];
-        var value = c.map ? c.map(raw, s) : raw;
-        value = (value !== null && value !== undefined) ? String(value) : '';
-        return '"' + value.replace(/"/g, '""') + '"';
-      });
-    }));
-    var csv  = lines.map(function (r) { return r.join(','); }).join('\r\n');
-    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    var url  = URL.createObjectURL(blob);
-    var a    = document.createElement('a');
-    a.href     = url;
-    a.download = 'students_' + formatDateYYYYMMDD(new Date()) + '.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
 
   exportCsvBtn.addEventListener('click', function () {
     var rows = getFiltered();
