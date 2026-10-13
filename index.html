@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Student Management System</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw" crossorigin="anonymous"></script>
 <script>(function(){try{var t=localStorage.getItem('app:theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw" crossorigin="anonymous" defer></script>
 <style>
   /* ===== Theme Variables ===== */
   :root {
@@ -464,7 +464,7 @@
     } else {
       emptyState.classList.add('hidden');
       filtered.forEach(function (s) {
-        var grade_display = (s.grade !== null && s.grade !== undefined && s.grade !== '') ? s.grade + '%' : '&mdash;';
+        var grade_display = (s.grade !== null && s.grade !== undefined && s.grade !== '') ? escapeHtml(String(s.grade)) + '%' : '&mdash;';
         var tr = document.createElement('tr');
         tr.innerHTML =
           '<td data-label="Roll No">' + escapeHtml(s.rollNo) + '</td>' +
@@ -575,15 +575,11 @@
   statusFilter.addEventListener('change', render);
 
   exportCsvBtn.addEventListener('click', function () {
-    var rows = getFiltered();
-    if (rows.length === 0) { alert('No students to export.'); return; }
-    exportStudentsToCsv(rows);
+    exportStudentsToCsv(getFiltered());
   });
 
   exportXlsxBtn.addEventListener('click', function () {
-    var rows = getFiltered();
-    if (rows.length === 0) { alert('No students to export.'); return; }
-    exportStudentsToXlsx(rows);
+    exportStudentsToXlsx(getFiltered());
   });
 
   loadStudents();
