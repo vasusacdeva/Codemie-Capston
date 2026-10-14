@@ -1,89 +1,98 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Student Management System</title>
-<script>(function(){var K='codemie:theme';try{var p=localStorage.getItem(K)||'system';var e=p==='dark'?'dark':p==='light'?'light':(window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',e);document.documentElement.setAttribute('data-theme-pref',p);}catch(err){}})();</script>
+<script>
+  (function() {
+    var saved = localStorage.getItem('themePreference');
+    if (saved === 'dark' || saved === 'light') {
+      document.documentElement.setAttribute('data-theme', saved);
+    }
+  })();
+</script>
 <style>
-  :root {
+  :root,
+  [data-theme="light"] {
     --primary: #4f46e5;
     --primary-dark: #4338ca;
     --danger: #dc2626;
     --danger-dark: #b91c1c;
-  }
-  :root,
-  :root[data-theme='light'] {
     --bg: #f3f4f6;
     --card-bg: #ffffff;
     --text: #1f2937;
     --muted: #6b7280;
     --border: #e5e7eb;
     --input-bg: #ffffff;
-    --thead-bg: #f9fafb;
-    --hover-bg: #f9fafb;
+    --th-bg: #f9fafb;
+    --tr-hover: #f9fafb;
     --btn-secondary-bg: #e5e7eb;
     --btn-secondary-hover: #d1d5db;
   }
-  :root[data-theme='dark'] {
-    --bg: #0f172a;
-    --card-bg: #1e293b;
-    --text: #e2e8f0;
-    --muted: #94a3b8;
-    --border: #334155;
-    --input-bg: #0f172a;
-    --thead-bg: #162032;
-    --hover-bg: #273549;
-    --btn-secondary-bg: #334155;
-    --btn-secondary-hover: #475569;
+  [data-theme="dark"] {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --danger: #ef4444;
+    --danger-dark: #dc2626;
+    --bg: #111827;
+    --card-bg: #1f2937;
+    --text: #f9fafb;
+    --muted: #9ca3af;
+    --border: #374151;
+    --input-bg: #374151;
+    --th-bg: #111827;
+    --tr-hover: #374151;
+    --btn-secondary-bg: #374151;
+    --btn-secondary-hover: #4b5563;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); transition: background 0.2s ease, color 0.2s ease; }
-  header { background: linear-gradient(135deg, var(--primary), #7c3aed); color: white; padding: 18px 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-  .header-title h1 { margin: 0; font-size: 1.6rem; }
-  .header-title p  { margin: 4px 0 0; opacity: 0.9; font-size: 0.9rem; }
-  .theme-control { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-  .theme-control-label { font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.85); white-space: nowrap; }
-  .theme-segmented { display: flex; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; overflow: hidden; padding: 2px; gap: 2px; }
-  .theme-seg-btn { background: transparent; border: none; border-radius: 6px; color: rgba(255,255,255,0.75); padding: 6px 12px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background 0.15s ease, color 0.15s ease; white-space: nowrap; }
-  .theme-seg-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
-  .theme-seg-btn[aria-checked='true'] { background: rgba(255,255,255,0.28); color: #fff; }
-  .theme-seg-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.8); outline-offset: 1px; }
+  body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); }
+  header {
+    background: linear-gradient(135deg, var(--primary), #7c3aed);
+    color: white; padding: 24px 32px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+  }
+  header h1 { margin: 0; font-size: 1.6rem; }
+  header p { margin: 4px 0 0; opacity: 0.9; font-size: 0.9rem; }
+  .theme-toggle-btn {
+    background: rgba(255,255,255,0.15); color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: background 0.15s ease; white-space: nowrap;
+  }
+  .theme-toggle-btn:hover { background: rgba(255,255,255,0.25); }
   .container { max-width: 1100px; margin: 24px auto; padding: 0 20px; }
   .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
-  .stat-card { background: var(--card-bg); border-radius: 10px; padding: 16px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid var(--border); transition: background 0.2s ease, border-color 0.2s ease; }
+  .stat-card { background: var(--card-bg); border-radius: 10px; padding: 16px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid var(--border); }
   .stat-card .value { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
   .stat-card .label { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
-  .card { background: var(--card-bg); border-radius: 10px; padding: 20px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid var(--border); margin-bottom: 24px; transition: background 0.2s ease, border-color 0.2s ease; }
-  .card h2 { margin-top: 0; font-size: 1.15rem; border-bottom: 1px solid var(--border); padding-bottom: 12px; color: var(--text); }
+  .card { background: var(--card-bg); border-radius: 10px; padding: 20px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid var(--border); margin-bottom: 24px; }
+  .card h2 { margin-top: 0; font-size: 1.15rem; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
   form.student-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
   .field { display: flex; flex-direction: column; gap: 6px; }
   .field label { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
-  input, select { padding: 9px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; background: var(--input-bg); color: var(--text); transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease; }
+  input, select { padding: 9px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; background: var(--input-bg); color: var(--text); }
   input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.15); }
   .form-actions { grid-column: 1 / -1; display: flex; gap: 10px; margin-top: 4px; }
   button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 18px; font-size: 0.9rem; font-weight: 600; transition: background 0.15s ease; }
-  .btn-primary   { background: var(--primary); color: #fff; }
-  .btn-primary:hover   { background: var(--primary-dark); }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); }
   .btn-secondary { background: var(--btn-secondary-bg); color: var(--text); }
   .btn-secondary:hover { background: var(--btn-secondary-hover); }
-  .btn-danger    { background: var(--danger); color: #fff; }
-  .btn-danger:hover    { background: var(--danger-dark); }
-  .btn-success   { background: #059669; color: #fff; }
-  .btn-success:hover   { background: #047857; }
-  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { background: var(--danger-dark); }
   .toolbar { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; align-items: center; }
-  .toolbar input[type='text'] { flex: 1; min-width: 200px; }
+  .toolbar input[type="text"] { flex: 1; min-width: 200px; }
   .toolbar select { min-width: 160px; }
   table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-  thead th { text-align: left; padding: 10px 12px; background: var(--thead-bg); border-bottom: 2px solid var(--border); color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; }
-  tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text); }
-  tbody tr:hover { background: var(--hover-bg); }
+  thead th { text-align: left; padding: 10px 12px; background: var(--th-bg); border-bottom: 2px solid var(--border); color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  tbody tr:hover { background: var(--tr-hover); }
   .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
-  .badge.active   { background: #dcfce7; color: #166534; }
+  .badge.active { background: #dcfce7; color: #166534; }
   .badge.inactive { background: #fee2e2; color: #991b1b; }
-  :root[data-theme='dark'] .badge.active   { background: #14532d; color: #86efac; }
-  :root[data-theme='dark'] .badge.inactive { background: #7f1d1d; color: #fca5a5; }
   .row-actions { display: flex; gap: 8px; }
   .row-actions button { padding: 6px 12px; font-size: 0.8rem; }
   .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
@@ -95,32 +104,17 @@
     tbody tr { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
     tbody td { border: none; padding: 6px 8px; display: flex; justify-content: space-between; gap: 10px; }
     tbody td::before { content: attr(data-label); font-weight: 600; color: var(--muted); }
-    .theme-seg-btn .seg-label { display: none; }
   }
 </style>
 </head>
 <body>
 <header>
-  <div class="header-title">
-    <h1>&#127891; Student Management System</h1>
-    <p>Manage student records, enrollment and status &mdash; all in one page</p>
+  <div>
+    <h1>&#127379; Student Management System</h1>
+    <p>Manage student records, enrollment and status &#8212; all in one page</p>
   </div>
-  <div class="theme-control">
-    <span class="theme-control-label" id="themeGroupLabel">Theme:</span>
-    <div class="theme-segmented" role="radiogroup" aria-labelledby="themeGroupLabel" id="themeSegmented">
-      <button type="button" class="theme-seg-btn" role="radio" id="themeBtnSystem" data-theme-pref="system" aria-checked="true" aria-label="Use system theme preference">
-        <span aria-hidden="true">&#9881;</span><span class="seg-label">System</span>
-      </button>
-      <button type="button" class="theme-seg-btn" role="radio" id="themeBtnLight" data-theme-pref="light" aria-checked="false" aria-label="Use light theme">
-        <span aria-hidden="true">&#9728;</span><span class="seg-label">Light</span>
-      </button>
-      <button type="button" class="theme-seg-btn" role="radio" id="themeBtnDark" data-theme-pref="dark" aria-checked="false" aria-label="Use dark theme">
-        <span aria-hidden="true">&#127769;</span><span class="seg-label">Dark</span>
-      </button>
-    </div>
-  </div>
+  <button type="button" id="themeToggleBtn" class="theme-toggle-btn" aria-label="Switch to dark theme">&#127769; Dark</button>
 </header>
-
 <div class="container">
   <div class="stats">
     <div class="stat-card"><div class="value" id="statTotal">0</div><div class="label">Total Students</div></div>
@@ -128,7 +122,6 @@
     <div class="stat-card"><div class="value" id="statCourses">0</div><div class="label">Courses</div></div>
     <div class="stat-card"><div class="value" id="statAvgGrade">0</div><div class="label">Average Grade</div></div>
   </div>
-
   <div class="card">
     <h2 id="formTitle">Add New Student</h2>
     <form class="student-form" id="studentForm">
@@ -147,17 +140,12 @@
       </div>
     </form>
   </div>
-
   <div class="card">
     <h2>Student Records</h2>
     <div class="toolbar">
       <input type="text" id="searchInput" placeholder="&#128269; Search by name, roll no, email or course...">
-      <select id="statusFilter">
-        <option value="">All Statuses</option>
-        <option value="active">Active</option>
-        <option value="inactive">Inactive</option>
-      </select>
-      <button type="button" class="btn-secondary" id="exportCsvBtn">&#11015; Export CSV</button>
+      <select id="statusFilter"><option value="">All Statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+      <button type="button" class="btn-secondary" id="exportBtn">Export CSV</button>
     </div>
     <div id="tableWrapper">
       <table>
@@ -171,222 +159,226 @@
 <footer>Data is saved locally in your browser (localStorage). No server required.</footer>
 <script>
 (function () {
-  // THEME SERVICE (KAN-104)
-  var THEME_KEY = 'codemie:theme';
-  var currentPref = 'system';
-  var osQuery = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+  const STORAGE_KEY = 'sms_students_v1';
+  const THEME_KEY = 'themePreference';
 
-  function resolveEffective(pref) {
-    if (pref === 'dark')  return 'dark';
-    if (pref === 'light') return 'light';
-    return (osQuery && osQuery.matches) ? 'dark' : 'light';
+  let students = [];
+  let editingId = null;
+
+  const form = document.getElementById('studentForm');
+  const formTitle = document.getElementById('formTitle');
+  const submitBtn = document.getElementById('submitBtn');
+  const cancelEditBtn = document.getElementById('cancelEditBtn');
+  const tableBody = document.getElementById('studentTableBody');
+  const emptyState = document.getElementById('emptyState');
+  const searchInput = document.getElementById('searchInput');
+  const statusFilter = document.getElementById('statusFilter');
+  const exportBtn = document.getElementById('exportBtn');
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+  function getCurrentTheme() {
+    return document.documentElement.getAttribute('data-theme') || 'light';
   }
 
-  function applyTheme(pref) {
-    currentPref = pref;
-    var effective = resolveEffective(pref);
-    document.documentElement.setAttribute('data-theme', effective);
-    document.documentElement.setAttribute('data-theme-pref', pref);
-    ['system', 'light', 'dark'].forEach(function (opt) {
-      var id = 'themeBtn' + opt.charAt(0).toUpperCase() + opt.slice(1);
-      var btn = document.getElementById(id);
-      if (btn) btn.setAttribute('aria-checked', pref === opt ? 'true' : 'false');
-    });
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    if (theme === 'dark') {
+      themeToggleBtn.textContent = String.fromCodePoint(0x2600, 0xFE0F) + ' Light';
+      themeToggleBtn.setAttribute('aria-label', 'Switch to light theme');
+    } else {
+      themeToggleBtn.textContent = String.fromCodePoint(0x1F319) + ' Dark';
+      themeToggleBtn.setAttribute('aria-label', 'Switch to dark theme');
+    }
   }
 
-  function setTheme(pref) {
-    applyTheme(pref);
-    try { localStorage.setItem(THEME_KEY, pref); } catch (e) {}
+  function initTheme() {
+    const saved = localStorage.getItem(THEME_KEY) || 'light';
+    applyTheme(saved);
   }
 
-  function loadStoredPref() {
-    try {
-      var v = localStorage.getItem(THEME_KEY);
-      return (v === 'system' || v === 'light' || v === 'dark') ? v : 'system';
-    } catch (e) { return 'system'; }
-  }
-
-  applyTheme(loadStoredPref());
-
-  if (osQuery && osQuery.addEventListener) {
-    osQuery.addEventListener('change', function () {
-      if (currentPref === 'system') applyTheme('system');
-    });
-  } else if (osQuery && osQuery.addListener) {
-    osQuery.addListener(function () {
-      if (currentPref === 'system') applyTheme('system');
-    });
-  }
-
-  document.getElementById('themeSegmented').addEventListener('click', function (e) {
-    var btn = e.target.closest('button[data-theme-pref]');
-    if (!btn) return;
-    setTheme(btn.getAttribute('data-theme-pref'));
+  themeToggleBtn.addEventListener('click', function () {
+    const next = getCurrentTheme() === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    localStorage.setItem(THEME_KEY, next);
   });
-
-  document.getElementById('themeSegmented').addEventListener('keydown', function (e) {
-    var btns = Array.from(this.querySelectorAll('button[role="radio"]'));
-    var idx = btns.indexOf(document.activeElement);
-    if (idx === -1) return;
-    var next = -1;
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { next = (idx + 1) % btns.length; }
-    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { next = (idx - 1 + btns.length) % btns.length; }
-    if (next !== -1) { e.preventDefault(); btns[next].focus(); setTheme(btns[next].getAttribute('data-theme-pref')); }
-  });
-
-  // CSV EXPORT SERVICE
-  var EXPORT_COLS = [
-    { header: 'Roll No', key: 'rollNo' },
-    { header: 'Name',    key: 'name'   },
-    { header: 'Email',   key: 'email'  },
-    { header: 'Course',  key: 'course' },
-    { header: 'Grade',   key: 'grade',  map: function (v) { return (v !== null && v !== undefined && v !== '') ? v : ''; } },
-    { header: 'Status',  key: 'status', map: function (v) { return v === 'active' ? 'Active' : 'Inactive'; } }
-  ];
-
-  function dateStamp() {
-    var d = new Date();
-    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  }
-
-  function exportToCsv(rows) {
-    if (!rows || rows.length === 0) return;
-    var lines = [EXPORT_COLS.map(function (c) { return c.header; })].concat(
-      rows.map(function (s) {
-        return EXPORT_COLS.map(function (c) {
-          var raw = s[c.key]; var val = c.map ? c.map(raw, s) : raw;
-          val = (val !== null && val !== undefined) ? String(val) : '';
-          return '"' + val.replace(/"/g, '""') + '"';
-        });
-      })
-    );
-    var csv  = lines.map(function (r) { return r.join(','); }).join('
-');
-    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    var url  = URL.createObjectURL(blob); var a = document.createElement('a');
-    a.href = url; a.download = 'students_' + dateStamp() + '.csv';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-  }
-
-  // STUDENT MANAGEMENT CORE
-  var STORAGE_KEY  = 'sms_students_v1';
-  var students = []; var editingId = null;
-  var form = document.getElementById('studentForm');
-  var formTitle = document.getElementById('formTitle');
-  var submitBtn = document.getElementById('submitBtn');
-  var cancelEditBtn = document.getElementById('cancelEditBtn');
-  var tableBody = document.getElementById('studentTableBody');
-  var emptyState = document.getElementById('emptyState');
-  var searchInput = document.getElementById('searchInput');
-  var statusFilter = document.getElementById('statusFilter');
-  var exportCsvBtn = document.getElementById('exportCsvBtn');
 
   function loadStudents() {
-    try { var raw = localStorage.getItem(STORAGE_KEY); students = raw ? JSON.parse(raw) : seedData(); } catch (e) { students = seedData(); }
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      students = raw ? JSON.parse(raw) : seedData();
+    } catch (e) {
+      students = seedData();
+    }
   }
-  function saveStudents() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(students)); } catch (e) {} }
+
+  function saveStudents() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+  }
+
   function seedData() {
     return [
-      { id: crypto.randomUUID(), name: 'Alice Johnson', rollNo: 'S-1001', email: 'alice@example.com', course: 'Computer Science', grade: 92, status: 'active'   },
-      { id: crypto.randomUUID(), name: 'Bob Smith',     rollNo: 'S-1002', email: 'bob@example.com',   course: 'Mathematics',       grade: 78, status: 'active'   },
-      { id: crypto.randomUUID(), name: 'Carol White',   rollNo: 'S-1003', email: 'carol@example.com', course: 'Physics',           grade: 65, status: 'inactive' }
+      { id: crypto.randomUUID(), name: 'Alice Johnson', rollNo: 'S-1001', email: 'alice@example.com', course: 'Computer Science', grade: 92, status: 'active' },
+      { id: crypto.randomUUID(), name: 'Bob Smith', rollNo: 'S-1002', email: 'bob@example.com', course: 'Mathematics', grade: 78, status: 'active' },
+      { id: crypto.randomUUID(), name: 'Carol White', rollNo: 'S-1003', email: 'carol@example.com', course: 'Physics', grade: 65, status: 'inactive' }
     ];
   }
 
-  function escapeHtml(str) { var div = document.createElement('div'); div.textContent = str != null ? str : ''; return div.innerHTML; }
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+  }
+
   function getFiltered() {
-    var q = searchInput.value.trim().toLowerCase(); var st = statusFilter.value;
-    return students.filter(function (s) {
-      return (!q || [s.name, s.rollNo, s.email, s.course].some(function (v) { return (v || '').toLowerCase().includes(q); })) && (!st || s.status === st);
+    const q = searchInput.value.trim().toLowerCase();
+    const st = statusFilter.value;
+    return students.filter(s => {
+      const matchesQuery = !q || [s.name, s.rollNo, s.email, s.course].some(v => (v || '').toLowerCase().includes(q));
+      const matchesStatus = !st || s.status === st;
+      return matchesQuery && matchesStatus;
     });
   }
+
   function render() {
-    var filtered = getFiltered(); tableBody.innerHTML = '';
-    if (filtered.length === 0) { emptyState.classList.remove('hidden'); } else {
+    const filtered = getFiltered();
+    tableBody.innerHTML = '';
+    if (filtered.length === 0) {
+      emptyState.classList.remove('hidden');
+    } else {
       emptyState.classList.add('hidden');
-      filtered.forEach(function (s) {
-        var gd = (s.grade !== null && s.grade !== undefined && s.grade !== '') ? escapeHtml(String(s.grade)) + '%' : '&mdash;';
-        var tr = document.createElement('tr');
-        tr.innerHTML =
-          '<td data-label="Roll No">' + escapeHtml(s.rollNo) + '</td>' +
-          '<td data-label="Name">'    + escapeHtml(s.name)   + '</td>' +
-          '<td data-label="Email">'   + escapeHtml(s.email)  + '</td>' +
-          '<td data-label="Course">'  + escapeHtml(s.course) + '</td>' +
-          '<td data-label="Grade">'   + gd + '</td>' +
-          '<td data-label="Status"><span class="badge ' + (s.status === 'active' ? 'active' : 'inactive') + '">' + (s.status === 'active' ? 'Active' : 'Inactive') + '</span></td>' +
-          '<td data-label="Actions"><div class="row-actions">' +
-          '<button type="button" class="btn-secondary" data-action="edit" data-id="' + escapeHtml(s.id) + '">Edit</button>' +
-          '<button type="button" class="btn-danger" data-action="delete" data-id="' + escapeHtml(s.id) + '">Delete</button>' +
-          '</div></td>';
+      filtered.forEach(s => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td data-label="Roll No">${escapeHtml(s.rollNo)}</td>
+          <td data-label="Name">${escapeHtml(s.name)}</td>
+          <td data-label="Email">${escapeHtml(s.email)}</td>
+          <td data-label="Course">${escapeHtml(s.course)}</td>
+          <td data-label="Grade">${s.grade !== null && s.grade !== undefined && s.grade !== '' ? s.grade + '%' : String.fromCodePoint(0x2014)}</td>
+          <td data-label="Status"><span class="badge ${s.status}">${s.status === 'active' ? 'Active' : 'Inactive'}</span></td>
+          <td data-label="Actions">
+            <div class="row-actions">
+              <button type="button" class="btn-secondary" data-action="edit" data-id="${s.id}">Edit</button>
+              <button type="button" class="btn-danger" data-action="delete" data-id="${s.id}">Delete</button>
+            </div>
+          </td>
+        `;
         tableBody.appendChild(tr);
       });
     }
-    updateStats(); exportCsvBtn.disabled = filtered.length === 0;
+    updateStats();
   }
+
   function updateStats() {
-    var total = students.length;
-    var active = students.filter(function (s) { return s.status === 'active'; }).length;
-    var courses = new Set(students.map(function (s) { return s.course; }).filter(Boolean)).size;
-    var grades = students.map(function (s) { return parseFloat(s.grade); }).filter(function (g) { return !isNaN(g); });
-    var avg = grades.length ? (grades.reduce(function (a, b) { return a + b; }, 0) / grades.length).toFixed(1) : '0';
+    const total = students.length;
+    const active = students.filter(s => s.status === 'active').length;
+    const courses = new Set(students.map(s => s.course).filter(Boolean)).size;
+    const grades = students.map(s => parseFloat(s.grade)).filter(g => !isNaN(g));
+    const avg = grades.length ? (grades.reduce((a, b) => a + b, 0) / grades.length).toFixed(1) : '0';
     document.getElementById('statTotal').textContent = total;
     document.getElementById('statActive').textContent = active;
     document.getElementById('statCourses').textContent = courses;
     document.getElementById('statAvgGrade').textContent = avg + '%';
   }
+
   function resetForm() {
-    form.reset(); document.getElementById('studentId').value = ''; editingId = null;
-    formTitle.textContent = 'Add New Student'; submitBtn.textContent = 'Add Student';
+    form.reset();
+    document.getElementById('studentId').value = '';
+    editingId = null;
+    formTitle.textContent = 'Add New Student';
+    submitBtn.textContent = 'Add Student';
     cancelEditBtn.classList.add('hidden');
   }
+
   function startEdit(id) {
-    var s = students.find(function (x) { return x.id === id; }); if (!s) return;
-    editingId = id; document.getElementById('studentId').value = s.id;
-    document.getElementById('name').value = s.name; document.getElementById('rollNo').value = s.rollNo;
-    document.getElementById('email').value = s.email; document.getElementById('course').value = s.course;
-    document.getElementById('grade').value = s.grade != null ? s.grade : '';
+    const s = students.find(x => x.id === id);
+    if (!s) return;
+    editingId = id;
+    document.getElementById('studentId').value = s.id;
+    document.getElementById('name').value = s.name;
+    document.getElementById('rollNo').value = s.rollNo;
+    document.getElementById('email').value = s.email;
+    document.getElementById('course').value = s.course;
+    document.getElementById('grade').value = s.grade ?? '';
     document.getElementById('status').value = s.status;
-    formTitle.textContent = 'Edit Student'; submitBtn.textContent = 'Save Changes';
-    cancelEditBtn.classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' });
+    formTitle.textContent = 'Edit Student';
+    submitBtn.textContent = 'Save Changes';
+    cancelEditBtn.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+
   function deleteStudent(id) {
-    var s = students.find(function (x) { return x.id === id; }); if (!s) return;
-    if (!confirm('Delete student "' + s.name + '" (' + s.rollNo + ')? This cannot be undone.')) return;
-    students = students.filter(function (x) { return x.id !== id; }); saveStudents(); render();
+    const s = students.find(x => x.id === id);
+    if (!s) return;
+    if (!confirm(`Delete student "${s.name}" (${s.rollNo})? This cannot be undone.`)) return;
+    students = students.filter(x => x.id !== id);
+    saveStudents();
+    render();
     if (editingId === id) resetForm();
   }
+
   function isDuplicateRollNo(rollNo, ignoreId) {
-    return students.some(function (s) { return s.rollNo.toLowerCase() === rollNo.toLowerCase() && s.id !== ignoreId; });
+    return students.some(s => s.rollNo.toLowerCase() === rollNo.toLowerCase() && s.id !== ignoreId);
   }
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
-    var name = document.getElementById('name').value.trim();
-    var rollNo = document.getElementById('rollNo').value.trim();
-    var email = document.getElementById('email').value.trim();
-    var course = document.getElementById('course').value.trim();
-    var gradeRaw = document.getElementById('grade').value;
-    var grade = gradeRaw === '' ? null : Math.min(100, Math.max(0, parseFloat(gradeRaw)));
-    var status = document.getElementById('status').value;
+    const name = document.getElementById('name').value.trim();
+    const rollNo = document.getElementById('rollNo').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const course = document.getElementById('course').value.trim();
+    const gradeRaw = document.getElementById('grade').value;
+    const grade = gradeRaw === '' ? null : Math.min(100, Math.max(0, parseFloat(gradeRaw)));
+    const status = document.getElementById('status').value;
     if (!name || !rollNo || !email || !course) { alert('Please fill in all required fields.'); return; }
     if (isDuplicateRollNo(rollNo, editingId)) { alert('A student with this Roll Number already exists.'); return; }
     if (editingId) {
-      Object.assign(students.find(function (x) { return x.id === editingId; }), { name: name, rollNo: rollNo, email: email, course: course, grade: grade, status: status });
+      const s = students.find(x => x.id === editingId);
+      Object.assign(s, { name, rollNo, email, course, grade, status });
     } else {
-      students.push({ id: crypto.randomUUID(), name: name, rollNo: rollNo, email: email, course: course, grade: grade, status: status });
+      students.push({ id: crypto.randomUUID(), name, rollNo, email, course, grade, status });
     }
-    saveStudents(); render(); resetForm();
+    saveStudents();
+    render();
+    resetForm();
   });
+
   cancelEditBtn.addEventListener('click', resetForm);
+
   tableBody.addEventListener('click', function (e) {
-    var btn = e.target.closest('button[data-action]'); if (!btn) return;
-    if (btn.dataset.action === 'edit')   startEdit(btn.dataset.id);
-    if (btn.dataset.action === 'delete') deleteStudent(btn.dataset.id);
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    if (btn.dataset.action === 'edit') startEdit(id);
+    if (btn.dataset.action === 'delete') deleteStudent(id);
   });
+
   searchInput.addEventListener('input', render);
   statusFilter.addEventListener('change', render);
-  exportCsvBtn.addEventListener('click', function () { exportToCsv(getFiltered()); });
-  loadStudents(); saveStudents(); render();
+
+  exportBtn.addEventListener('click', function () {
+    const rows = getFiltered();
+    if (rows.length === 0) { alert('No students to export.'); return; }
+    const header = ['Roll No', 'Name', 'Email', 'Course', 'Grade', 'Status'];
+    const csvRows = [header.join(',')];
+    rows.forEach(s => {
+      const line = [s.rollNo, s.name, s.email, s.course, s.grade ?? '', s.status]
+        .map(v => `"${String(v).replace(/"/g, '""')}"`)
+        .join(',');
+      csvRows.push(line);
+    });
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'students.csv'; a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  initTheme();
+  loadStudents();
+  saveStudents();
+  render();
 })();
 </script>
+
 </body>
 </html>
