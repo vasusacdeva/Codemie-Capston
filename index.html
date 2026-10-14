@@ -6,10 +6,12 @@
 <title>Student Management System</title>
 <script>
   (function() {
-    var saved = localStorage.getItem('themePreference');
-    if (saved === 'dark' || saved === 'light') {
-      document.documentElement.setAttribute('data-theme', saved);
-    }
+    try {
+      var saved = localStorage.getItem('themePreference');
+      if (saved === 'dark' || saved === 'light') {
+        document.documentElement.setAttribute('data-theme', saved);
+      }
+    } catch (e) { /* private browsing — fall back to default light theme */ }
   })();
 </script>
 <style>
@@ -91,8 +93,16 @@
   tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
   tbody tr:hover { background: var(--tr-hover); }
   .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
-  .badge.active { background: #dcfce7; color: #166534; }
-  .badge.inactive { background: #fee2e2; color: #991b1b; }
+  :root, [data-theme="light"] {
+    --badge-active-bg: #dcfce7; --badge-active-fg: #166534;
+    --badge-inactive-bg: #fee2e2; --badge-inactive-fg: #991b1b;
+  }
+  [data-theme="dark"] {
+    --badge-active-bg: rgba(34,197,94,0.15); --badge-active-fg: #86efac;
+    --badge-inactive-bg: rgba(239,68,68,0.15); --badge-inactive-fg: #fca5a5;
+  }
+  .badge.active { background: var(--badge-active-bg); color: var(--badge-active-fg); }
+  .badge.inactive { background: var(--badge-inactive-bg); color: var(--badge-inactive-fg); }
   .row-actions { display: flex; gap: 8px; }
   .row-actions button { padding: 6px 12px; font-size: 0.8rem; }
   .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
@@ -113,7 +123,7 @@
     <h1>&#127379; Student Management System</h1>
     <p>Manage student records, enrollment and status &#8212; all in one page</p>
   </div>
-  <button type="button" id="themeToggleBtn" class="theme-toggle-btn" aria-label="Switch to dark theme">&#127769; Dark</button>
+  <button type="button" id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle theme" aria-pressed="false">Theme</button>
 </header>
 <div class="container">
   <div class="stats">
@@ -182,6 +192,7 @@
 
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
+    themeToggleBtn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
     if (theme === 'dark') {
       themeToggleBtn.textContent = String.fromCodePoint(0x2600, 0xFE0F) + ' Light';
       themeToggleBtn.setAttribute('aria-label', 'Switch to light theme');
@@ -192,14 +203,19 @@
   }
 
   function initTheme() {
-    const saved = localStorage.getItem(THEME_KEY) || 'light';
+    let saved = 'light';
+    try {
+      saved = localStorage.getItem(THEME_KEY) || 'light';
+    } catch (e) { /* private browsing — fall back to default */ }
     applyTheme(saved);
   }
 
   themeToggleBtn.addEventListener('click', function () {
     const next = getCurrentTheme() === 'dark' ? 'light' : 'dark';
     applyTheme(next);
-    localStorage.setItem(THEME_KEY, next);
+    try {
+      localStorage.setItem(THEME_KEY, next);
+    } catch (e) { /* private browsing — preference won't persist this session */ }
   });
 
   function loadStudents() {
